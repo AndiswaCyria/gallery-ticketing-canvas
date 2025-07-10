@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Palette, BarChart3, Ticket } from "lucide-react";
+import { Plus, Palette, BarChart3, Ticket, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +91,15 @@ const Index = () => {
               >
                 <Ticket className="h-4 w-4" />
                 Tickets
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => window.location.href = '/leads'}
+                className="gap-2"
+              >
+                <Users className="h-4 w-4" />
+                Leads
               </Button>
               
               <Button
