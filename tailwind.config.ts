@@ -61,7 +61,25 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				/* Art Gallery Colors */
+				gallery: {
+					gold: 'hsl(var(--gallery-gold))',
+					blue: 'hsl(var(--gallery-blue))',
+					'blue-light': 'hsl(var(--gallery-blue-light))',
+					gray: 'hsl(var(--gallery-gray))',
+					warm: 'hsl(var(--gallery-warm))'
 				}
+			},
+			backgroundImage: {
+				'gradient-gallery': 'var(--gradient-gallery)',
+				'gradient-gold': 'var(--gradient-gold)',
+				'gradient-subtle': 'var(--gradient-subtle)'
+			},
+			boxShadow: {
+				'gallery': 'var(--shadow-gallery)',
+				'gold': 'var(--shadow-gold)',
+				'elegant': 'var(--shadow-elegant)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
