@@ -1,73 +1,115 @@
-# Welcome to your Lovable project
+# ArtDesk - Internal Support Portal
 
-## Project info
+A comprehensive internal support and sales management platform designed specifically for art galleries, dealers, and art sales organizations.
 
-**URL**: https://lovable.dev/projects/7529bed5-02cb-4d4a-954d-cfe76ceb8ee7
+## Overview
 
-## How can I edit this code?
+ArtDesk streamlines internal operations for art businesses by providing:
 
-There are several ways of editing your application.
+- **Ticket Management System** - Handle support requests with art-specific categories
+- **Leads & Client Management** - Track prospects and manage client relationships
+- **Analytics Dashboard** - Monitor performance metrics and team productivity
+- **Professional Gallery Aesthetic** - Clean, modern interface that reflects the art world
 
-**Use Lovable**
+## Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7529bed5-02cb-4d4a-954d-cfe76ceb8ee7) and start prompting.
+### 🎫 Ticket Management
+- Art-specific categories: Authentication, Exhibition, Sales, Restoration, Insurance
+- Priority levels and status tracking
+- Team member assignment
+- Real-time updates and notifications
 
-Changes made via Lovable will be committed automatically to this repo.
+### 👥 Sales Management
+- Lead capture and qualification
+- Client relationship management
+- Art interest tracking and budget management
+- Sales pipeline analytics
 
-**Use your preferred IDE**
+### 📊 Analytics & Reporting
+- Real-time dashboard metrics
+- Visual charts and performance indicators
+- Team productivity tracking
+- Sales funnel insights
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Target Users
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Gallery staff and coordinators
+- Art dealers and sales teams
+- Exhibition coordinators
+- Operations and support teams
 
-Follow these steps:
+## Technology Stack
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- **Frontend**: React + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Routing**: React Router
+- **State Management**: TanStack Query
+- **Charts**: Recharts
+- **Icons**: Lucide React
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Getting Started
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Prerequisites
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+
+# Navigate to project directory
+cd artdesk
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Building for Production
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run build
+```
 
-**Use GitHub Codespaces**
+## Project Structure
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── LeadForm.tsx    # Lead capture form
+│   ├── LeadsList.tsx   # Lead management table
+│   ├── ClientsList.tsx # Client management
+│   ├── TicketForm.tsx  # Support ticket creation
+│   ├── TicketList.tsx  # Ticket management
+│   └── StatsCards.tsx  # Dashboard metrics
+├── pages/              # Main application pages
+│   ├── Index.tsx       # Dashboard homepage
+│   ├── Leads.tsx       # Sales management page
+│   └── NotFound.tsx    # 404 page
+├── types/              # TypeScript type definitions
+│   ├── sales.ts        # Lead/Client types
+│   └── ticket.ts       # Ticket types
+└── lib/                # Utility functions
+```
 
-## What technologies are used for this project?
+## Contributing
 
-This project is built with:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -m 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## License
 
-## How can I deploy this project?
+This project is proprietary software designed for internal use by art organizations.
 
-Simply open [Lovable](https://lovable.dev/projects/7529bed5-02cb-4d4a-954d-cfe76ceb8ee7) and click on Share -> Publish.
+## Support
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+For technical support or feature requests, please create a ticket through the internal support system or contact the development team.
