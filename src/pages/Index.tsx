@@ -1,14 +1,82 @@
-import { useState } from "react";
-import { Plus, Palette, BarChart3, Ticket, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Palette, BarChart3, Ticket, Users, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TicketForm } from "@/components/TicketForm";
 import { TicketList } from "@/components/TicketList";
 import { StatsCards } from "@/components/StatsCards";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Session, User } from "@supabase/supabase-js";
 import type { Ticket as TicketType } from "@/types/ticket";
 
 const Index = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Authentication state management
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+        
+        // Redirect to auth if not authenticated
+        if (!session?.user) {
+          navigate("/auth");
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+      
+      // Redirect if not authenticated
+      if (!session?.user) {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will be redirected)
+  if (!user || !session) {
+    return null;
+  }
   const [tickets, setTickets] = useState<TicketType[]>([
     {
       id: "1",
@@ -75,6 +143,11 @@ const Index = () => {
             </div>
             
             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 mr-4">
+                <span className="text-sm text-muted-foreground">Welcome,</span>
+                <span className="text-sm font-medium">{user.email}</span>
+              </div>
+              
               <Button
                 variant={currentView === "dashboard" ? "gallery" : "ghost"}
                 onClick={() => setCurrentView("dashboard")}
@@ -109,6 +182,15 @@ const Index = () => {
               >
                 <Plus className="h-4 w-4" />
                 New Ticket
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleSignOut}
+                className="gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
               </Button>
             </div>
           </div>
