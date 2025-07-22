@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Palette, BarChart3, Ticket, Users, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,46 +17,73 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const [tickets, setTickets] = useState<TicketType[]>([
-    {
-      id: "1",
-      title: "Painting Authentication Required",
-      description: "Need certificate of authenticity for 1960s abstract piece",
-      category: "Authentication",
-      priority: "high",
-      status: "open",
-      createdAt: new Date(2024, 0, 15),
-      updatedAt: new Date(2024, 0, 15),
-      assignedTo: "Sarah Chen"
-    },
-    {
-      id: "2", 
-      title: "Gallery Exhibition Setup",
-      description: "Coordinate lighting and positioning for upcoming contemporary art show",
-      category: "Exhibition",
-      priority: "medium",
-      status: "in-progress",
-      createdAt: new Date(2024, 0, 14),
-      updatedAt: new Date(2024, 0, 16),
-      assignedTo: "Marcus Rivera"
-    },
-    {
-      id: "3",
-      title: "Client Commission Inquiry",
-      description: "High-value client requesting custom portrait commission timeline",
-      category: "Sales",
-      priority: "urgent",
-      status: "open",
-      createdAt: new Date(2024, 0, 16),
-      updatedAt: new Date(2024, 0, 16)
-    }
-  ]);
-
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [currentView, setCurrentView] = useState<"dashboard" | "tickets">("dashboard");
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch tickets from Supabase
+  const { data: tickets = [], isLoading: ticketsLoading, error: ticketsError } = useQuery({
+    queryKey: ['tickets', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      return data.map(ticket => ({
+        ...ticket,
+        createdAt: new Date(ticket.created_at),
+        updatedAt: new Date(ticket.updated_at)
+      })) as TicketType[];
+    },
+    enabled: !!user,
+  });
+
+  // Create ticket mutation
+  const createTicketMutation = useMutation({
+    mutationFn: async (newTicket: Omit<TicketType, "id" | "createdAt" | "updatedAt">) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const { data, error } = await supabase
+        .from('tickets')
+        .insert([{
+          user_id: user.id,
+          title: newTicket.title,
+          description: newTicket.description,
+          category: newTicket.category,
+          priority: newTicket.priority,
+          status: newTicket.status,
+          assigned_to: newTicket.assignedTo
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      setShowTicketForm(false);
+      toast({
+        title: "Success",
+        description: "Ticket created successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create ticket",
+        variant: "destructive",
+      });
+      console.error('Error creating ticket:', error);
+    },
+  });
 
   // Authentication state management
   useEffect(() => {
@@ -99,8 +127,26 @@ const Index = () => {
     }
   };
 
-  // Show loading state while checking authentication
-  if (loading) {
+  // Don't render if not authenticated (will be redirected)
+  if (!user || !session) {
+    return null;
+  }
+
+  // Handle tickets error
+  if (ticketsError) {
+    toast({
+      title: "Error",
+      description: "Failed to load tickets",
+      variant: "destructive",
+    });
+  }
+
+  const handleCreateTicket = (newTicket: Omit<TicketType, "id" | "createdAt" | "updatedAt">) => {
+    createTicketMutation.mutate(newTicket);
+  };
+
+  // Show loading state while checking authentication or loading tickets
+  if (loading || ticketsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -110,22 +156,6 @@ const Index = () => {
       </div>
     );
   }
-
-  // Don't render if not authenticated (will be redirected)
-  if (!user || !session) {
-    return null;
-  }
-
-  const handleCreateTicket = (newTicket: Omit<TicketType, "id" | "createdAt" | "updatedAt">) => {
-    const ticket: TicketType = {
-      ...newTicket,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    setTickets(prev => [ticket, ...prev]);
-    setShowTicketForm(false);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -274,6 +304,7 @@ const Index = () => {
         <TicketForm
           onSubmit={handleCreateTicket}
           onCancel={() => setShowTicketForm(false)}
+          isLoading={createTicketMutation.isPending}
         />
       )}
     </div>

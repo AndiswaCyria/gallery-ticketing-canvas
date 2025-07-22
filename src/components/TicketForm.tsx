@@ -11,6 +11,7 @@ import type { Ticket } from "@/types/ticket";
 interface TicketFormProps {
   onSubmit: (ticket: Omit<Ticket, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 const categories = [
@@ -32,7 +33,7 @@ const priorities = [
   { value: "urgent", label: "Urgent", color: "bg-red-100 text-red-800" }
 ];
 
-export const TicketForm = ({ onSubmit, onCancel }: TicketFormProps) => {
+export const TicketForm = ({ onSubmit, onCancel, isLoading = false }: TicketFormProps) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -160,9 +161,9 @@ export const TicketForm = ({ onSubmit, onCancel }: TicketFormProps) => {
                 type="submit"
                 variant="gallery"
                 className="flex-1"
-                disabled={!formData.title || !formData.description || !formData.category}
+                disabled={!formData.title || !formData.description || !formData.category || isLoading}
               >
-                Create Ticket
+                {isLoading ? "Creating..." : "Create Ticket"}
               </Button>
               <Button
                 type="button"
