@@ -19,6 +19,44 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const [tickets, setTickets] = useState<TicketType[]>([
+    {
+      id: "1",
+      title: "Painting Authentication Required",
+      description: "Need certificate of authenticity for 1960s abstract piece",
+      category: "Authentication",
+      priority: "high",
+      status: "open",
+      createdAt: new Date(2024, 0, 15),
+      updatedAt: new Date(2024, 0, 15),
+      assignedTo: "Sarah Chen"
+    },
+    {
+      id: "2", 
+      title: "Gallery Exhibition Setup",
+      description: "Coordinate lighting and positioning for upcoming contemporary art show",
+      category: "Exhibition",
+      priority: "medium",
+      status: "in-progress",
+      createdAt: new Date(2024, 0, 14),
+      updatedAt: new Date(2024, 0, 16),
+      assignedTo: "Marcus Rivera"
+    },
+    {
+      id: "3",
+      title: "Client Commission Inquiry",
+      description: "High-value client requesting custom portrait commission timeline",
+      category: "Sales",
+      priority: "urgent",
+      status: "open",
+      createdAt: new Date(2024, 0, 16),
+      updatedAt: new Date(2024, 0, 16)
+    }
+  ]);
+
+  const [showTicketForm, setShowTicketForm] = useState(false);
+  const [currentView, setCurrentView] = useState<"dashboard" | "tickets">("dashboard");
+
   // Authentication state management
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -77,43 +115,6 @@ const Index = () => {
   if (!user || !session) {
     return null;
   }
-  const [tickets, setTickets] = useState<TicketType[]>([
-    {
-      id: "1",
-      title: "Painting Authentication Required",
-      description: "Need certificate of authenticity for 1960s abstract piece",
-      category: "Authentication",
-      priority: "high",
-      status: "open",
-      createdAt: new Date(2024, 0, 15),
-      updatedAt: new Date(2024, 0, 15),
-      assignedTo: "Sarah Chen"
-    },
-    {
-      id: "2", 
-      title: "Gallery Exhibition Setup",
-      description: "Coordinate lighting and positioning for upcoming contemporary art show",
-      category: "Exhibition",
-      priority: "medium",
-      status: "in-progress",
-      createdAt: new Date(2024, 0, 14),
-      updatedAt: new Date(2024, 0, 16),
-      assignedTo: "Marcus Rivera"
-    },
-    {
-      id: "3",
-      title: "Client Commission Inquiry",
-      description: "High-value client requesting custom portrait commission timeline",
-      category: "Sales",
-      priority: "urgent",
-      status: "open",
-      createdAt: new Date(2024, 0, 16),
-      updatedAt: new Date(2024, 0, 16)
-    }
-  ]);
-
-  const [showTicketForm, setShowTicketForm] = useState(false);
-  const [currentView, setCurrentView] = useState<"dashboard" | "tickets">("dashboard");
 
   const handleCreateTicket = (newTicket: Omit<TicketType, "id" | "createdAt" | "updatedAt">) => {
     const ticket: TicketType = {
@@ -168,7 +169,7 @@ const Index = () => {
 
               <Button
                 variant="ghost"
-                onClick={() => window.location.href = '/leads'}
+                onClick={() => navigate('/leads')}
                 className="gap-2"
               >
                 <Users className="h-4 w-4" />
