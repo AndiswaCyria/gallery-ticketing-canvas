@@ -145,6 +145,20 @@ const Index = () => {
     createTicketMutation.mutate(newTicket);
   };
 
+  const handleViewTicket = (ticket: TicketType) => {
+    toast({
+      title: "View Ticket",
+      description: `Viewing ticket: ${ticket.title}`,
+    });
+  };
+
+  const handleEditTicket = (ticket: TicketType) => {
+    toast({
+      title: "Edit Ticket", 
+      description: `Editing ticket: ${ticket.title}`,
+    });
+  };
+
   // Show loading state while checking authentication or loading tickets
   if (loading || ticketsLoading) {
     return (
@@ -292,7 +306,12 @@ const Index = () => {
 
             <Card className="shadow-elegant border-border">
               <CardContent className="p-6">
-                <TicketList tickets={tickets} showActions={true} />
+                <TicketList 
+                  tickets={tickets} 
+                  showActions={true}
+                  onViewTicket={handleViewTicket}
+                  onEditTicket={handleEditTicket}
+                />
               </CardContent>
             </Card>
           </div>

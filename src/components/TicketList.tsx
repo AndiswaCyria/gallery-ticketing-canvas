@@ -7,6 +7,8 @@ import type { Ticket } from "@/types/ticket";
 interface TicketListProps {
   tickets: Ticket[];
   showActions?: boolean;
+  onViewTicket?: (ticket: Ticket) => void;
+  onEditTicket?: (ticket: Ticket) => void;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -44,7 +46,7 @@ const getStatusColor = (status: string) => {
   return colorMap[status] || colorMap.open;
 };
 
-export const TicketList = ({ tickets, showActions = true }: TicketListProps) => {
+export const TicketList = ({ tickets, showActions = true, onViewTicket, onEditTicket }: TicketListProps) => {
   if (tickets.length === 0) {
     return (
       <div className="text-center py-12">
@@ -110,10 +112,18 @@ export const TicketList = ({ tickets, showActions = true }: TicketListProps) => 
               
               {showActions && (
                 <div className="flex gap-2">
-                  <Button variant="elegant" size="sm">
+                  <Button 
+                    variant="elegant" 
+                    size="sm"
+                    onClick={() => onViewTicket?.(ticket)}
+                  >
                     View
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => onEditTicket?.(ticket)}
+                  >
                     Edit
                   </Button>
                 </div>
