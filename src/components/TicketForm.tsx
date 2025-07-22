@@ -12,6 +12,7 @@ interface TicketFormProps {
   onSubmit: (ticket: Omit<Ticket, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  editTicket?: Ticket;
 }
 
 const categories = [
@@ -33,14 +34,14 @@ const priorities = [
   { value: "urgent", label: "Urgent", color: "bg-red-100 text-red-800" }
 ];
 
-export const TicketForm = ({ onSubmit, onCancel, isLoading = false }: TicketFormProps) => {
+export const TicketForm = ({ onSubmit, onCancel, isLoading = false, editTicket }: TicketFormProps) => {
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "",
-    priority: "medium" as Ticket["priority"],
-    status: "open" as Ticket["status"],
-    assignedTo: ""
+    title: editTicket?.title || "",
+    description: editTicket?.description || "",
+    category: editTicket?.category || "",
+    priority: editTicket?.priority || "medium" as Ticket["priority"],
+    status: editTicket?.status || "open" as Ticket["status"],
+    assignedTo: editTicket?.assignedTo || ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -62,7 +63,7 @@ export const TicketForm = ({ onSubmit, onCancel, isLoading = false }: TicketForm
           <div className="flex items-center justify-between text-primary-foreground">
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
-              Create New Ticket
+              {editTicket ? "Edit Ticket" : "Create New Ticket"}
             </CardTitle>
             <Button
               variant="ghost"
@@ -163,7 +164,7 @@ export const TicketForm = ({ onSubmit, onCancel, isLoading = false }: TicketForm
                 className="flex-1"
                 disabled={!formData.title || !formData.description || !formData.category || isLoading}
               >
-                {isLoading ? "Creating..." : "Create Ticket"}
+                {isLoading ? (editTicket ? "Updating..." : "Creating...") : (editTicket ? "Update Ticket" : "Create Ticket")}
               </Button>
               <Button
                 type="button"

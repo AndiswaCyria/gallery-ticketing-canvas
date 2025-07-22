@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TicketForm } from "@/components/TicketForm";
 import { TicketList } from "@/components/TicketList";
+import { TicketDetailModal } from "@/components/TicketDetailModal";
 import { StatsCards } from "@/components/StatsCards";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +19,8 @@ const Index = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [showTicketForm, setShowTicketForm] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<TicketType | null>(null);
+  const [viewingTicket, setViewingTicket] = useState<TicketType | null>(null);
   const [currentView, setCurrentView] = useState<"dashboard" | "tickets">("dashboard");
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -70,18 +73,60 @@ const Index = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       setShowTicketForm(false);
+      setEditingTicket(null);
       toast({
         title: "Success",
-        description: "Ticket created successfully",
+        description: editingTicket ? "Ticket updated successfully" : "Ticket created successfully",
       });
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to create ticket",
+        description: editingTicket ? "Failed to update ticket" : "Failed to create ticket",
         variant: "destructive",
       });
-      console.error('Error creating ticket:', error);
+      console.error('Error with ticket:', error);
+    },
+  });
+
+  // Update ticket mutation
+  const updateTicketMutation = useMutation({
+    mutationFn: async ({ ticketId, updates }: { ticketId: string, updates: Partial<TicketType> }) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const { data, error } = await supabase
+        .from('tickets')
+        .update({
+          title: updates.title,
+          description: updates.description,
+          category: updates.category,
+          priority: updates.priority,
+          status: updates.status,
+          assigned_to: updates.assignedTo,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', ticketId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      toast({
+        title: "Success",
+        description: "Ticket updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update ticket",
+        variant: "destructive",
+      });
+      console.error('Error updating ticket:', error);
     },
   });
 
@@ -142,21 +187,41 @@ const Index = () => {
   }
 
   const handleCreateTicket = (newTicket: Omit<TicketType, "id" | "createdAt" | "updatedAt">) => {
-    createTicketMutation.mutate(newTicket);
+    if (editingTicket) {
+      // Update existing ticket
+      updateTicketMutation.mutate({
+        ticketId: editingTicket.id,
+        updates: newTicket
+      });
+    } else {
+      // Create new ticket
+      createTicketMutation.mutate(newTicket);
+    }
   };
 
   const handleViewTicket = (ticket: TicketType) => {
-    toast({
-      title: "View Ticket",
-      description: `Viewing ticket: ${ticket.title}`,
-    });
+    setViewingTicket(ticket);
   };
 
   const handleEditTicket = (ticket: TicketType) => {
-    toast({
-      title: "Edit Ticket", 
-      description: `Editing ticket: ${ticket.title}`,
-    });
+    setEditingTicket(ticket);
+    setShowTicketForm(true);
+  };
+
+  const handleStatusChange = (ticketId: string, newStatus: TicketType['status']) => {
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (ticket) {
+      updateTicketMutation.mutate({
+        ticketId,
+        updates: { status: newStatus }
+      });
+    }
+  };
+
+  const handleCloseModals = () => {
+    setShowTicketForm(false);
+    setEditingTicket(null);
+    setViewingTicket(null);
   };
 
   // Show loading state while checking authentication or loading tickets
@@ -311,6 +376,8 @@ const Index = () => {
                   showActions={true}
                   onViewTicket={handleViewTicket}
                   onEditTicket={handleEditTicket}
+                  onStatusChange={handleStatusChange}
+                  isUpdating={updateTicketMutation.isPending}
                 />
               </CardContent>
             </Card>
@@ -322,8 +389,18 @@ const Index = () => {
       {showTicketForm && (
         <TicketForm
           onSubmit={handleCreateTicket}
-          onCancel={() => setShowTicketForm(false)}
-          isLoading={createTicketMutation.isPending}
+          onCancel={handleCloseModals}
+          isLoading={createTicketMutation.isPending || updateTicketMutation.isPending}
+          editTicket={editingTicket || undefined}
+        />
+      )}
+
+      {/* Ticket Detail Modal */}
+      {viewingTicket && (
+        <TicketDetailModal
+          ticket={viewingTicket}
+          onClose={handleCloseModals}
+          onEdit={handleEditTicket}
         />
       )}
     </div>

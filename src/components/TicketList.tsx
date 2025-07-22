@@ -2,6 +2,7 @@ import { Clock, User, AlertCircle, CheckCircle, Palette, Truck, Shield } from "l
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { TicketStatusSelector } from "@/components/TicketStatusSelector";
 import type { Ticket } from "@/types/ticket";
 
 interface TicketListProps {
@@ -9,6 +10,8 @@ interface TicketListProps {
   showActions?: boolean;
   onViewTicket?: (ticket: Ticket) => void;
   onEditTicket?: (ticket: Ticket) => void;
+  onStatusChange?: (ticketId: string, newStatus: Ticket['status']) => void;
+  isUpdating?: boolean;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -46,7 +49,7 @@ const getStatusColor = (status: string) => {
   return colorMap[status] || colorMap.open;
 };
 
-export const TicketList = ({ tickets, showActions = true, onViewTicket, onEditTicket }: TicketListProps) => {
+export const TicketList = ({ tickets, showActions = true, onViewTicket, onEditTicket, onStatusChange, isUpdating }: TicketListProps) => {
   if (tickets.length === 0) {
     return (
       <div className="text-center py-12">
@@ -85,12 +88,20 @@ export const TicketList = ({ tickets, showActions = true, onViewTicket, onEditTi
                     {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
                   </Badge>
                   
-                  <Badge 
-                    variant="secondary"
-                    className={`${getStatusColor(ticket.status)} border`}
-                  >
-                    {ticket.status.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase())}
-                  </Badge>
+                  {onStatusChange ? (
+                    <TicketStatusSelector
+                      ticket={ticket}
+                      onStatusChange={onStatusChange}
+                      isLoading={isUpdating}
+                    />
+                  ) : (
+                    <Badge 
+                      variant="secondary"
+                      className={`${getStatusColor(ticket.status)} border`}
+                    >
+                      {ticket.status.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                    </Badge>
+                  )}
                   
                   <Badge variant="outline" className="bg-gallery-warm">
                     {ticket.category}
