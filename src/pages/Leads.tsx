@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Users, Building, Phone, Mail, Calendar, DollarSign, LogOut, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ const Leads = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Authentication state management
   useEffect(() => {
@@ -78,68 +80,115 @@ const Leads = () => {
   if (!user || !session) {
     return null;
   }
-  const [leads, setLeads] = useState<Lead[]>([
-    {
-      id: "1",
-      name: "Maria Rodriguez",
-      email: "maria@artcollector.com",
-      phone: "+1 (555) 123-4567",
-      company: "Rodriguez Collection",
-      status: "hot",
-      source: "referral",
-      artInterests: ["Contemporary", "Abstract"],
-      budget: 50000,
-      notes: "Interested in acquiring pieces for new gallery space",
-      lastContact: new Date(2024, 0, 15),
-      createdAt: new Date(2024, 0, 10),
-      updatedAt: new Date(2024, 0, 15)
-    },
-    {
-      id: "2",
-      name: "David Chen",
-      email: "d.chen@modernspaces.com",
-      phone: "+1 (555) 987-6543", 
-      company: "Modern Spaces Interior",
-      status: "warm",
-      source: "website",
-      artInterests: ["Modern", "Sculptures"],
-      budget: 25000,
-      notes: "Looking for statement pieces for corporate offices",
-      lastContact: new Date(2024, 0, 12),
-      createdAt: new Date(2024, 0, 8),
-      updatedAt: new Date(2024, 0, 12)
-    }
-  ]);
 
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: "1",
-      name: "Eleanor Hartwell",
-      email: "ehartwell@heritage.com",
-      phone: "+1 (555) 246-8135",
-      company: "Heritage Foundation",
-      totalPurchases: 125000,
-      artCollection: ["Renaissance", "Classical", "Baroque"],
-      preferredArtist: "Various Old Masters",
-      notes: "Long-time collector with focus on historical pieces",
-      createdAt: new Date(2023, 5, 20),
-      updatedAt: new Date(2024, 0, 8),
-      lastPurchase: new Date(2023, 11, 15)
-    }
-  ]);
+  // Fetch leads
+  const { data: leads = [], isLoading: leadsLoading, error: leadsError } = useQuery({
+    queryKey: ["leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      
+      // Transform the data to match the Lead type
+      return data.map(lead => ({
+        id: lead.id,
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        company: lead.company,
+        status: lead.status as Lead["status"],
+        source: lead.source as Lead["source"],
+        artInterests: lead.art_interests || [],
+        budget: lead.budget,
+        notes: lead.notes,
+        lastContact: new Date(lead.last_contact),
+        createdAt: new Date(lead.created_at),
+        updatedAt: new Date(lead.updated_at)
+      })) as Lead[];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch clients
+  const { data: clients = [], isLoading: clientsLoading, error: clientsError } = useQuery({
+    queryKey: ["clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      
+      // Transform the data to match the Client type
+      return data.map(client => ({
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        phone: client.phone,
+        company: client.company,
+        totalPurchases: Number(client.total_purchases) || 0,
+        artCollection: client.art_collection || [],
+        preferredArtist: client.preferred_artist,
+        notes: client.notes,
+        createdAt: new Date(client.created_at),
+        updatedAt: new Date(client.updated_at),
+        lastPurchase: client.last_purchase ? new Date(client.last_purchase) : undefined
+      })) as Client[];
+    },
+    enabled: !!user,
+  });
+
+  // Create lead mutation
+  const createLeadMutation = useMutation({
+    mutationFn: async (newLead: Omit<Lead, "id" | "createdAt" | "updatedAt">) => {
+      const { data, error } = await supabase
+        .from("leads")
+        .insert({
+          user_id: user!.id,
+          name: newLead.name,
+          email: newLead.email,
+          phone: newLead.phone,
+          company: newLead.company,
+          status: newLead.status,
+          source: newLead.source,
+          art_interests: newLead.artInterests,
+          budget: newLead.budget,
+          notes: newLead.notes,
+          last_contact: newLead.lastContact.toISOString()
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      toast({
+        title: "Success",
+        description: "Lead created successfully",
+      });
+      setShowLeadForm(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create lead",
+        variant: "destructive",
+      });
+      console.error("Error creating lead:", error);
+    },
+  });
 
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [activeTab, setActiveTab] = useState("leads");
 
   const handleCreateLead = (newLead: Omit<Lead, "id" | "createdAt" | "updatedAt">) => {
-    const lead: Lead = {
-      ...newLead,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    setLeads(prev => [lead, ...prev]);
-    setShowLeadForm(false);
+    createLeadMutation.mutate(newLead);
   };
 
   const getStatsCards = () => [
@@ -147,7 +196,7 @@ const Leads = () => {
       title: "Total Leads",
       value: leads.length,
       icon: Users,
-      color: "text-gallery-blue"
+      color: "text-primary"
     },
     {
       title: "Hot Leads",
@@ -159,7 +208,7 @@ const Leads = () => {
       title: "Total Clients",
       value: clients.length,
       icon: Building,
-      color: "text-gallery-gold"
+      color: "text-secondary"
     },
     {
       title: "Revenue Pipeline",
@@ -201,7 +250,7 @@ const Leads = () => {
               </div>
               
               <Button
-                variant="gold"
+                variant="default"
                 onClick={() => setShowLeadForm(true)}
                 className="gap-2"
               >
@@ -249,7 +298,7 @@ const Leads = () => {
         <Card className="shadow-elegant border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5 text-gallery-blue" />
+              <Building className="h-5 w-5 text-primary" />
               Sales Management
             </CardTitle>
           </CardHeader>
@@ -267,11 +316,31 @@ const Leads = () => {
               </TabsList>
 
               <TabsContent value="leads" className="mt-6">
-                <LeadsList leads={leads} />
+                {leadsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                ) : leadsError ? (
+                  <div className="text-center py-8">
+                    <p className="text-destructive">Failed to load leads</p>
+                  </div>
+                ) : (
+                  <LeadsList leads={leads} />
+                )}
               </TabsContent>
 
               <TabsContent value="clients" className="mt-6">
-                <ClientsList clients={clients} />
+                {clientsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                ) : clientsError ? (
+                  <div className="text-center py-8">
+                    <p className="text-destructive">Failed to load clients</p>
+                  </div>
+                ) : (
+                  <ClientsList clients={clients} />
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>

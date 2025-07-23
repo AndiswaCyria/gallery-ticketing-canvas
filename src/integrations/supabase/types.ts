@@ -14,6 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          art_collection: string[] | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          last_purchase: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          preferred_artist: string | null
+          total_purchases: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          art_collection?: string[] | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          last_purchase?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          preferred_artist?: string | null
+          total_purchases?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          art_collection?: string[] | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          last_purchase?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          preferred_artist?: string | null
+          total_purchases?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          art_interests: string[] | null
+          budget: number | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          last_contact: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          art_interests?: string[] | null
+          budget?: number | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          last_contact?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          source: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          art_interests?: string[] | null
+          budget?: number | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          last_contact?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
